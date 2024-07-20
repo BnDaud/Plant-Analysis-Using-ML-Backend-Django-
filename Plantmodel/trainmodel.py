@@ -1,66 +1,46 @@
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.pipeline import make_pipeline
-from sklearn.metrics import classification_report
 import joblib , os
-# Load the dataset
+# Sample data dictionary (you can replace this with your actual data)
+
 df = pd.read_excel(os.path.join(os.getcwd(), "Plantmodel","realistic_plant1.xlsx"))
 
-# Display the first few rows of the dataset
-print(df.head())
-
-
-
-# Separate features and target
-X = df.drop("Plant Type", axis=1)
+# Encode categorical features and target
+df_encoded = pd.get_dummies(df, columns=["Soil Type"])
+X = df_encoded.drop(columns=["Plant Type"])
 y = df["Plant Type"]
 
-# Encode the target variable
-label_encoder = LabelEncoder()
-y_encoded = label_encoder.fit_transform(y)
+#......Split the data......
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Preprocess the features
-numeric_features = ["Sunlight (hours/day)", "Wind (m/s)", "pH", "Temperature (°C)", "Water (mm/month)", "Carbon Dioxide (ppm)", "Minerals (%)"]
-categorical_features = ["Soil Type"]
+#......Train the Random Forest model......
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
 
-numeric_transformer = Pipeline(steps=[
-    ("imputer", SimpleImputer(strategy="mean")),
-    ("scaler", StandardScaler())
-])
-
-categorical_transformer = Pipeline(steps=[
-    ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-    ("onehot", OneHotEncoder(handle_unknown="ignore"))
-])
-
-preprocessor = ColumnTransformer(
-    transformers=[
-        ("num", numeric_transformer, numeric_features),
-        ("cat", categorical_transformer, categorical_features)
-    ])
-
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
-
-
-
-
-# Create a pipeline with preprocessing and the model
-rf_model = make_pipeline(preprocessor, RandomForestClassifier(n_estimators=100, random_state=42 , oob_score = True))
-
-# Train the model
-rf_model.fit(X_train, y_train)
-
-# Predict and evaluate
-y_pred_rf = rf_model.predict(X_test)
-print("Random Forest Classification Report:\n", classification_report(y_test, y_pred_rf, target_names=label_encoder.classes_))
-print(X_test)
-
+#......Save the Model......
 version = joblib.__version__
-joblib.dump(rf_model,os.path.join(os.getcwd() , "Plantmodel","model_new{version}.pkl".format(version= version)))
+joblib.dump(rf,os.path.join(os.getcwd() , "Plantmodel","model_new{version}.pkl".format(version= version)))
+# Get prediction probabilities for the test set
+
+if __name__ == "__main__":
+    probs = rf.predict_proba(X_test)
+
+    # Get the class labels
+    class_labels = rf.classes_
+
+    # Find the top 5 predictions for each sample in the test set
+    top_5_predictions = []
+    str_ = " "
+    for prob in probs:
+        top_5_indices = np.argsort(prob)[-5:][::-1]
+        top_5_plants = class_labels[top_5_indices]
+        top_5_predictions.append(top_5_plants)
+        str_ +=top_5_plants + " "
+
+
+    print(top_5_predictions[0])
+    # Display the first few samples of top 5 predictions
+    for i, top_5 in enumerate(top_5_predictions[:5]):
+        print(f"Sample {i+1}: {top_5}")
