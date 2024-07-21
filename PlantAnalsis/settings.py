@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-xb$ync#5n(ut-$c9d^&pvz6b2di7c(0raqt*rdc07247c#m==$"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [".vercel.app"]
 
 my_app = ["Plantmodel" , "rest_framework" ,"corsheaders",]
 # Application definition
