@@ -51,7 +51,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000" , "https://plant-analysis-using-ml-frontend-react-84hq.vercel.app/"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000" , "https://plant-analysis-using-ml-frontend-react-84hq.vercel.app"]
 
 ROOT_URLCONF = "PlantAnalsis.urls"
 
